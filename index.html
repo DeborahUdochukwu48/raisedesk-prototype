@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RaiseDesk Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE calm, exact, founder in control
+   IDEA a fundraising desk where the agent prepares and the founder decides
+   PICTURE the working app itself, five screens following RaiseDesk's outreach workflow
+   COLOUR ink and white, one indigo accent, amber only for "needs your judgment"
+   TYPE Inter throughout; LAYOUT sidebar app shell, stacks below 900px */
+:root{color-scheme:light dark;
+--bg:light-dark(#F5F6F8,#0F1115);--card:light-dark(#FFFFFF,#171A20);--ink:light-dark(#15171C,#ECEEF2);--mute:light-dark(#5A606B,#A3A9B5);
+--line:light-dark(#E4E6EB,#2A2E37);--soft:light-dark(#FAFAFB,#1C2027);--acc:light-dark(#3B4FD9,#8D9BFF);--accs:light-dark(#EEF0FD,#1F2547);
+--warn:light-dark(#8A4300,#F3B56B);--warns:light-dark(#FFF5E9,#2B2116);--ok:light-dark(#1E5B34,#7BD39B);--oks:light-dark(#EDF7F0,#16261C);
+--bad:light-dark(#A12A2A,#F19A9A);--bads:light-dark(#FBF0F0,#2A1818);--btn:light-dark(#15171C,#ECEEF2);--btnt:light-dark(#FFFFFF,#15171C)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif;overflow-x:clip}
+button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.app{display:flex;min-height:100vh}
+.side{width:232px;flex:none;background:var(--card);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:4px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;padding:4px 8px 18px}
+.mark{width:30px;height:30px;border-radius:8px;background:var(--btn);color:var(--btnt);display:grid;place-items:center;font-size:13px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:0 12px;border-radius:10px;border:0;background:none;color:var(--mute);font-weight:500;text-align:left;width:100%}
+.nav[aria-current=page]{background:var(--accs);color:var(--acc);font-weight:600}
+.nav .n{font-size:12px;font-weight:600;background:var(--btn);color:var(--btnt);border-radius:999px;padding:1px 8px}
+.raise{margin-top:auto;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:13px;color:var(--mute)}
+.raise b{display:block;color:var(--ink);font-size:14px}
+.main{flex:1;padding:24px clamp(16px,3vw,36px) 48px;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+h1{margin:0;font-size:26px;line-height:1.15}h2{margin:0;font-size:16px}h3{margin:0;font-size:14px}
+.sub{color:var(--mute);font-size:14px;margin-top:4px}
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;padding:7px 12px;border-radius:999px;background:var(--accs);color:var(--acc)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.row{display:flex;flex-wrap:wrap;gap:18px}.col{display:flex;flex-direction:column;gap:12px}
+.tag{flex:none;align-self:flex-start;display:inline-block;font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.v{background:var(--oks);color:var(--ok)}.a{background:var(--warns);color:var(--warn)}.i{background:var(--accs);color:var(--acc)}.x{background:var(--bads);color:var(--bad)}
+.fact{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.fact:first-of-type{border-top:0}.src{font-size:12.5px;color:var(--mute)}
+.btn{min-height:44px;padding:0 18px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600}
+.pri{background:var(--btn);color:var(--btnt);border-color:var(--btn)}.pri:disabled{opacity:.35;cursor:not-allowed}
+.ghost{border-color:transparent;background:none;color:var(--mute);font-weight:500}.sm{min-height:34px;padding:0 12px;font-size:13px}
+.q{text-align:left;width:100%;padding:14px;border-radius:12px;background:var(--card);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px;color:var(--ink)}
+.q[aria-pressed=true]{border:2px solid var(--acc);padding:13px}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;flex:1}.bar i{display:block;height:100%;background:var(--acc)}
+.mail{white-space:pre-line;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:16px;line-height:1.65}
+textarea{width:100%;min-height:150px;font:15px/1.6 Inter,system-ui,sans-serif;padding:14px;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);resize:vertical}
+.seg{display:flex;gap:6px;flex-wrap:wrap}.seg button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:13px;font-weight:500}
+.seg .btn{border-radius:10px;min-height:44px;padding:0 18px;font-size:15px;font-weight:600}.seg .pri{background:var(--btn);color:var(--btnt);border-color:var(--btn)}.seg .ghost{border-color:transparent;background:none;color:var(--mute);font-weight:500}
+.seg button[aria-pressed=true]{background:var(--accs);border-color:var(--acc);color:var(--acc);font-weight:600}
+.warnbox{display:flex;gap:10px;background:var(--warns);color:var(--warn);border-radius:10px;padding:12px 14px;font-size:13.5px}
+.okbox{background:var(--oks);color:var(--ok);border-radius:10px;padding:12px 14px;font-size:13.5px}
+.rec{font-size:13px;border:1px dashed var(--line);border-radius:10px;padding:12px 14px;color:var(--mute)}
+.rec b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;font-size:12px;color:var(--mute);font-weight:600;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}tr.sel td{background:var(--accs)}tr[data-i]{cursor:pointer}
+.tl{border-left:2px solid var(--line);margin-left:6px;padding-left:16px;display:flex;flex-direction:column;gap:12px;font-size:13.5px}
+.tl div{position:relative}.tl div::before{content:"";position:absolute;left:-22px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--card);border:2px solid var(--acc)}
+.stat{flex:1 1 150px;display:flex;flex-direction:column;gap:2px}.stat b{font-size:30px;line-height:1.1}.stat span{font-size:13px;color:var(--mute)}
+.owner{font-size:12px;color:var(--mute)}
+.demo{font-size:12px;color:var(--mute)}
+.scroll{overflow-x:auto}
+@media(max-width:900px){.app{flex-direction:column}.side{width:auto;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line);padding:10px}
+.logo{padding:4px 8px;width:100%}aside.col{max-width:none!important}.nav{width:auto}.raise{display:none}}
+@media(max-width:600px){h1{font-size:22px}.stack thead{display:none}.stack tr{display:grid;padding-block:8px}.stack td{border:0;padding:3px 0}}
+@media(prefers-reduced-motion:no-preference){.screen{animation:in .25s ease}@keyframes in{from{opacity:0;transform:translateY(4px)}}}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="side" aria-label="RaiseDesk">
+<div class="logo"><div class="mark" aria-hidden="true">R</div>RaiseDesk</div>
+<div id="nav" style="display:contents"></div>
+<div class="raise"><b>Seed round</b>Northwind Clinics · demo data<br>Canada and US · B2B health software</div>
+</nav>
+<main class="main" id="main"></main>
+</div>
+<script>
+{
+const S={screen:'approvals',inv:0,ap:0,route:{},confirmed:{},approved:{},edit:false,bodies:{},excluded:{},storyOk:{},inbox:0,toast:''};
+const NAV=[['story','Your story'],['discover','Discover'],['approvals','Approvals'],['inbox','Inbox'],['week','This week']];
+
+const facts=[
+ {t:'Northwind helps small clinics finish compliance audits in hours instead of weeks',s:'Your words',k:'v'},
+ {t:'38 paying clinics across British Columbia and Ontario',s:'Connected billing account',k:'v'},
+ {t:'Raising a seed round to expand into the US',s:'Your words',k:'v'},
+ {t:'Revenue grew every month this year',s:'Pitch deck, slide 9, dated three months ago',k:'a'},
+ {t:'No direct competitor serves clinics under 20 staff',s:'Agent inference from public research',k:'a'}];
+
+const inv=[
+ {firm:'Harbourline Capital',who:'Maya Chen',stage:'Pre-seed to seed',fit:92,route:'warm',via:'your advisor, Sam Patel',
+  ev:['Led four seed rounds in compliance software','Posted last month about clinic workflow tools as a focus'],as:['Cheque size fits a round of your size'],status:'In outreach'},
+ {firm:'Maple Seed Partners',who:'Daniel Osei',stage:'Seed',fit:86,route:'direct',via:'No shared contacts',
+  ev:['Canada focused fund, matches your HQ','Two portfolio companies sell to clinics'],as:['Still actively investing this quarter'],status:'In outreach'},
+ {firm:'Ridgeway Ventures',who:'Priya Natarajan',stage:'Seed to Series A',fit:74,route:'warm',via:'former colleague, Lena Ortiz',
+  ev:['Strong thesis on AI that removes manual work'],as:['May be open to an earlier stage than usual'],status:'Needs your call',conflict:'Backed a company that may compete with you'},
+ {firm:'Northfield Angels',who:'Tom Becker',stage:'Pre-seed',fit:68,route:'direct',via:'You met at an event in March',
+  ev:['Former clinic operator','Writes smaller cheques, good for filling a round'],as:[],status:'Shortlisted'},
+ {firm:'Crestview Fund',who:'Alex Moreau',stage:'Seed',fit:58,route:'direct',via:'No shared contacts',
+  ev:['Generalist fund that does seed'],as:['Interest in health software is not confirmed'],status:'Shortlisted'}];
+
+const drafts=[
+ {i:0,subject:'Intro: Northwind, compliance audits for small clinics',
+  warm:'Hi Sam,\n\nCould you forward this to Maya at Harbourline?\n\nMaya, your recent post on clinic workflow tools is exactly the problem we work on. Northwind helps small clinics finish compliance audits in hours instead of weeks, and 38 clinics pay for it today.\n\nWe are raising a seed round to expand into the US. Would you be open to a short call?\n\nThanks,\nAisha',
+  direct:'Hi Maya,\n\nYour recent post on clinic workflow tools is exactly the problem we work on. Northwind helps small clinics finish compliance audits in hours instead of weeks, and 38 clinics pay for it today.\n\nRevenue has grown every month this year. We are raising a seed round to expand into the US. Would you be open to a short call?\n\nBest,\nAisha',
+  claims:[['38 paying clinics','v','Connected billing account'],['Revenue has grown every month this year','a','Deck dated three months ago. Confirm it is still true.'],['Maya posted about clinic workflow tools','v','Public post, last month']]},
+ {i:1,subject:'Northwind, built for Canadian clinics',
+  warm:'',direct:'Hi Daniel,\n\nMaple Seed backed two teams selling to clinics this year. Northwind serves the same buyers: we help small clinics finish compliance audits in hours, and 38 pay for it today.\n\nWe are raising a seed round. Would a short call make sense?\n\nBest,\nAisha',
+  claims:[['Maple Seed backed two clinic focused teams','v','Public portfolio announcements'],['38 paying clinics','v','Connected billing account']]},
+ {i:2,subject:'AI that does compliance work for clinics',
+  warm:'Hi Lena,\n\nWould you be comfortable forwarding this to Priya at Ridgeway?\n\nPriya, Ridgeway backs AI that removes manual work. Northwind does that for clinic compliance, and 38 clinics pay for it today.\n\nOpen to a short chat?\n\nThanks,\nAisha',
+  direct:'Hi Priya,\n\nRidgeway backs AI that removes manual work. Northwind does that for clinic compliance, and 38 clinics pay for it today.\n\nOpen to a short chat?\n\nBest,\nAisha',
+  claims:[['38 paying clinics','v','Connected billing account'],['Ridgeway may back a competitor','a','Portfolio company overlaps with your buyers. Decide if you still want to reach out.']]}];
+
+const replies=[
+ {i:0,state:'reply',when:'Today, 09:12',msg:'Thanks Aisha, this is timely. Can you send the deck and a few lines on how you handle patient data?',
+  points:['She asked about patient data. Your security page covers storage and access','Her fund cares about regulated buyers. Lead with clinic retention','Suggest two times next week'],
+  hist:[['Nov 12','Fit found: led four compliance seed rounds'],['Nov 14','You approved the warm route through Sam'],['Nov 15','Sam forwarded your note'],['Today','Maya replied']]},
+ {i:4,state:'decline',when:'Yesterday',msg:'Thanks for reaching out. Health software is outside our focus this year.',
+  hist:[['Nov 10','Fit found: generalist seed fund'],['Nov 11','You approved a direct message'],['Yesterday','Alex declined']]},
+ {i:1,state:'silent',when:'Sent 9 days ago',msg:'No reply yet.',
+  hist:[['Nov 13','You approved a direct message'],['Nov 15','Sent'],['Dec 1','Review date']]}];
+
+const nav=document.getElementById('nav'),main=document.getElementById('main');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pending=()=>drafts.filter((d,k)=>!S.approved[k]).length;
+const tag=(k,t)=>`<span class="tag ${k}">${t}</span>`;
+const route=k=>S.route[k]||(drafts[k].warm?'warm':'direct');
+
+function drawNav(){
+ const counts={approvals:pending(),inbox:replies.filter(r=>r.state==='reply').length};
+ nav.innerHTML=NAV.map(([id,l])=>`<button class="nav" data-go="${id}" ${S.screen===id?'aria-current="page"':''}>${l}${counts[id]?`<span class="n">${counts[id]}</span>`:''}</button>`).join('');
+}
+function head(t,sub,right){return `<div class="top"><div><h1>${t}</h1><div class="sub">${sub}</div></div>${right||''}</div>`}
+
+const V={
+story(){
+ const ok=Object.keys(S.storyOk).length;
+ return head('Tell RaiseDesk what you are building','Your words lead. The agent separates what it could verify from what it is assuming.','<span class="demo">Demo data</span>')+
+ `<div class="row"><section class="card col" style="flex:1 1 380px"><label for="story"><h2>Your story</h2></label>
+ <textarea id="story">We help small clinics get through compliance audits without the paperwork. Today an audit takes a clinic manager weeks of chasing documents. With Northwind it takes hours. 38 clinics pay for it and revenue has grown every month this year. We are raising a seed round to expand into the US.</textarea>
+ <div class="col" style="gap:8px"><h3>Your raise</h3><div class="seg"><button aria-pressed="true">Seed</button><button aria-pressed="true">Health software</button><button aria-pressed="true">Canada and US</button><button>Add filter</button></div></div></section>
+ <section class="card" style="flex:1 1 420px"><div class="top" style="margin-bottom:6px"><h2>What RaiseDesk understood</h2><span class="tag i">${ok} of 2 assumptions checked</span></div>
+ ${facts.map((f,k)=>`<div class="fact"><div><div>${f.t}</div><div class="src">Source: ${f.s}</div></div><div class="col" style="align-items:flex-end;gap:6px">${f.k==='v'||S.storyOk[k]?tag('v','Verified'):tag('a','Assumption')}${f.k==='a'&&!S.storyOk[k]?`<button class="btn sm" data-ok="${k}">Confirm</button>`:''}</div></div>`).join('')}
+ <div class="rec" style="margin-top:8px">Only verified facts go into investor messages. Assumptions stay out until you confirm them.</div></section></div>`},
+discover(){
+ const d=inv[S.inv];
+ return head('Investors worth your time','Ranked by fit with your stage, sector, geography and network. Every match explains itself.','<span class="pill"><span class="dot"></span>Agent reviewed 340 investors</span>')+
+ `<div class="row"><section class="card" style="flex:3 1 520px;padding:8px"><div class="scroll"><table class="stack"><thead><tr><th>Investor</th><th>Fit</th><th>Route</th><th>Status</th></tr></thead><tbody>
+ ${inv.map((x,k)=>`<tr data-i="${k}" class="${k===S.inv?'sel':''}"><td><b>${x.firm}</b><div class="src">${x.who} · ${x.stage}</div></td><td style="width:140px"><div style="display:flex;gap:8px;align-items:center"><div class="bar"><i style="width:${x.fit}%"></i></div><b>${x.fit}</b></div></td><td>${x.route==='warm'?tag('i','Warm intro'):tag('v','Direct')}</td><td>${S.excluded[k]?tag('x','Excluded'):x.conflict?tag('a',x.status):tag('v',x.status)}</td></tr>`).join('')}
+ </tbody></table></div></section>
+ <section class="card col" style="flex:2 1 320px"><div><h2>${d.firm}</h2><div class="sub">${d.who} · ${d.stage}</div></div>
+ <div class="col" style="gap:8px"><h3>Public evidence</h3>${d.ev.map(e=>`<div class="fact" style="padding:6px 0;border:0">${e}${tag('v','Verified')}</div>`).join('')}</div>
+ ${d.as.length?`<div class="col" style="gap:8px"><h3>Assumptions</h3>${d.as.map(e=>`<div class="fact" style="padding:6px 0;border:0">${e}${tag('a','Assumption')}</div>`).join('')}</div>`:''}
+ ${d.conflict?`<div class="warnbox"><b>Needs your call.</b> ${d.conflict}.</div>`:''}
+ <div class="rec"><b>Best route:</b> ${d.route==='warm'?'Warm intro through '+d.via:'Direct message. '+d.via.charAt(0).toUpperCase()+d.via.slice(1)}</div>
+ <div class="seg"><button class="btn pri" data-go="approvals">Review draft</button><button class="btn" data-ex="${S.inv}">${S.excluded[S.inv]?'Include again':'Exclude'}</button></div></section></div>`},
+approvals(){
+ const k=S.ap,d=drafts[k],x=inv[d.i],r=route(k),body=S.bodies[k+r]??d[r];
+ const open=d.claims.filter((c,j)=>c[1]==='a'&&!S.confirmed[k+'-'+j]);
+ const done=S.approved[k];
+ return head('Approve outreach','Nothing reaches an investor until you approve the message and the claims behind it.',`<span class="pill"><span class="dot"></span>${pending()} waiting for you</span>`)+
+ `<div class="row"><aside class="col" style="flex:1 1 250px;max-width:320px">${drafts.map((q,j)=>{const y=inv[q.i];return `<button class="q" data-ap="${j}" aria-pressed="${j===k}"><span style="display:flex;justify-content:space-between;gap:8px"><b>${y.firm}</b>${S.approved[j]?tag('v','Approved'):q.claims.some(c=>c[1]==='a')?tag('a','Check'):tag('i','Ready')}</span><span class="src">${y.who} · fit ${y.fit}</span></button>`}).join('')}</aside>
+ <section class="card col" style="flex:3 1 440px"><div class="top"><div><div class="src">To ${x.who}, ${x.firm}</div><h2 style="font-size:18px;margin-top:2px">${d.subject}</h2></div><span class="tag i">Fit ${x.fit}</span></div>
+ <div class="col" style="gap:6px"><h3>Route</h3><div class="seg">${d.warm?`<button data-rt="warm" aria-pressed="${r==='warm'}">Warm intro via ${x.via.split(', ')[1]||x.via}</button>`:''}<button data-rt="direct" aria-pressed="${r==='direct'}">Direct message</button></div></div>
+ ${S.edit&&!done?`<label for="body" class="src">Edit the message</label><textarea id="body" style="min-height:230px">${esc(body)}</textarea>`:`<div class="mail">${esc(body)}</div>`}
+ ${done?`<div class="okbox">Approved. Sending ${r==='warm'?'to '+(x.via.split(', ')[1]||'your contact')+' to forward':'to '+x.who} tomorrow at 9:10 their time.</div>
+ <div class="rec"><b>Approval record</b><br>Approved by Aisha Rahman · today 14:32 · route: ${r==='warm'?'warm intro':'direct'} · exact text and ${d.claims.length} supporting claims saved</div>`:
+ `<div class="seg">${open.length?`<button class="btn pri" disabled>Approve and send</button>`:`<button class="btn pri" data-approve>Approve and send</button>`}<button class="btn" data-edit>${S.edit?'Done editing':'Edit'}</button><button class="btn ghost" data-skip>Not this investor</button></div>
+ ${open.length?`<div class="src">Approve unlocks once you confirm or remove ${open.length===1?'the open claim':'the open claims'}.</div>`:''}`}</section>
+ <aside class="card col" style="flex:2 1 280px"><h2>Claims in this message</h2>
+ ${d.claims.map((c,j)=>{const ok=c[1]==='v'||S.confirmed[k+'-'+j];return `<div class="fact" style="flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;gap:8px;width:100%"><span>${c[0]}</span>${ok?tag('v','Verified'):tag('a','Check')}</div><div class="src">${c[2]}</div>${!ok&&!done?`<div class="seg"><button data-cf="${k}-${j}">Still true</button><button data-rm="${k}-${j}">Remove from message</button></div>`:''}</div>`}).join('')}
+ <div class="rec" style="margin-top:auto"><b>Why ${x.firm}?</b><br>${x.ev.join('. ')}.</div></aside></div>`},
+inbox(){
+ const r=replies[S.inbox],x=inv[r.i];
+ return head('Inbox','A reply changes the next step. You write the answer, with everything you need in one place.','')+
+ `<div class="row"><aside class="col" style="flex:1 1 250px;max-width:320px">${replies.map((q,j)=>{const y=inv[q.i];return `<button class="q" data-ib="${j}" aria-pressed="${j===S.inbox}"><span style="display:flex;justify-content:space-between;gap:8px"><b>${y.firm}</b>${q.state==='reply'?tag('i','Your reply'):q.state==='decline'?tag('x','Declined'):tag('a','No reply')}</span><span class="src">${q.when}</span></button>`}).join('')}</aside>
+ <section class="card col" style="flex:3 1 420px"><div class="src">${x.who}, ${x.firm} · ${r.when}</div><div class="mail">${esc(r.msg)}</div>
+ ${r.state==='reply'?`<h2>Task for you: write a considered reply</h2><div class="col" style="gap:8px">${r.points.map(p=>`<div class="fact" style="border:0;padding:4px 0;justify-content:flex-start"><span class="tag i">Point</span><span>${p}</span></div>`).join('')}</div>
+ <label for="rep" class="src">Your reply</label><textarea id="rep" placeholder="Write in your own words. The agent never replies for you."></textarea><div class="seg"><button class="btn pri">Send reply</button><button class="btn">Attach deck</button></div>`:
+ r.state==='decline'?`<div class="okbox"><b>Sequence ended.</b> A clear decline stops all follow ups. Northwind will not contact Alex again unless you choose to.</div><div class="seg"><button class="btn">Send a thank you note</button></div>`:
+ `<div class="warnbox"><b>Review on Dec 1.</b> Follow up only if you have a useful update, such as a new customer or a product release.</div><div class="seg"><button class="btn pri">I have an update</button><button class="btn">No follow up</button></div>`}</section>
+ <aside class="card col" style="flex:2 1 260px"><h2>History</h2><div class="tl">${r.hist.map(h=>`<div><b>${h[0]}</b> · ${h[1]}</div>`).join('')}</div><div class="rec"><b>Fit rationale</b><br>${x.ev.join('. ')}.</div></aside></div>`},
+week(){
+ const st=[[pending(),'Awaiting your approval','You'],[9,'Messages sent','Agent'],[2,'Follow ups due','Agent, you approve'],[1,'Replies needing an answer','You'],[1,'Conversations awaiting a next step','You']];
+ return head('This week','The work done and what is waiting. Signals of progress, not promises of funding.','<span class="demo">Demo data</span>')+
+ `<section class="card"><div class="row">${st.map(s=>`<div class="stat"><b>${s[0]}</b><span>${s[1]}</span><span class="owner">Owner: ${s[2]}</span></div>`).join('')}</div></section>
+ <div class="row"><section class="card col" style="flex:1 1 380px"><h2>Where outreach is slowing down</h2>
+ <div class="warnbox"><div><b>Approvals are the bottleneck.</b> ${pending()} drafts have waited more than two days. Everything else is on time.</div></div>
+ <div class="seg"><button class="btn pri" data-go="approvals">Review all drafts now</button><button class="btn">Remind me at 8:00</button></div></section>
+ <section class="card col" style="flex:1 1 380px"><h2>Pipeline</h2>
+ ${[['Shortlisted',12],['In outreach',9],['Replied',2],['Meeting booked',1]].map(p=>`<div style="display:flex;align-items:center;gap:12px"><span style="width:120px;font-size:13.5px">${p[0]}</span><div class="bar" style="height:10px"><i style="width:${p[1]/12*100}%"></i></div><b style="width:24px;text-align:right">${p[1]}</b></div>`).join('')}</section></div>`}
+};
+
+function draw(){drawNav();main.innerHTML=`<div class="screen col" style="gap:18px">${V[S.screen]()}</div>`;
+ const t=document.getElementById('body');if(t)t.addEventListener('input',e=>{S.bodies[S.ap+route(S.ap)]=e.target.value});}
+function go(s){S.screen=s;S.edit=false;if(location.hash!=='#'+s)history.replaceState(null,'','#'+s);draw();window.scrollTo(0,0)}
+
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button,tr[data-i]');if(!b)return;const d=b.dataset;
+ if(d.go)return go(d.go);
+ if(d.i!==undefined){S.inv=+d.i;return draw()}
+ if(d.ok!==undefined){S.storyOk[d.ok]=1;return draw()}
+ if(d.ex!==undefined){S.excluded[d.ex]=!S.excluded[d.ex];return draw()}
+ if(d.ap!==undefined){S.ap=+d.ap;S.edit=false;return draw()}
+ if(d.rt){S.route[S.ap]=d.rt;return draw()}
+ if(d.cf){S.confirmed[d.cf]=1;return draw()}
+ if(d.rm){const [k,j]=d.rm.split('-').map(Number),c=drafts[k].claims[j];['warm','direct'].forEach(r=>{if(drafts[k][r])drafts[k][r]=drafts[k][r].replace(/\n\n?Revenue has grown every month this year\./,'').replace(/ Revenue has grown every month this year\./,'')});drafts[k].claims.splice(j,1);return draw()}
+ if('approve' in d){S.approved[S.ap]=1;S.edit=false;return draw()}
+ if('edit' in d){S.edit=!S.edit;return draw()}
+ if('skip' in d){S.ap=(S.ap+1)%drafts.length;return draw()}
+ if(d.ib!==undefined){S.inbox=+d.ib;return draw()}
+});
+const fromHash=()=>{const h=location.hash.slice(1);S.screen=V[h]?h:'approvals';S.edit=false;draw()};
+window.addEventListener('hashchange',fromHash);fromHash();
+}
+</script>
+</body>
+</html>
